@@ -1,0 +1,39 @@
+# Strip the 'v' from the version tag
+{% if GIT_DESCRIBE_TAG is defined %}
+{%   set version = GIT_DESCRIBE_TAG[1:] %}
+{% else %}
+{%   set version = "0.0.0" %}
+{% endif %}
+
+package:
+  name: lima-camera-minipix
+  version: {{ version }}
+
+source:
+  path: ..
+
+build:
+  number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
+  noarch: python
+  script: "{{ PYTHON }} -m pip install . -vv"
+  script_env:
+     - SETUPTOOLS_SCM_PRETEND_VERSION={{ version }}
+
+requirements:
+  host:
+    - pip
+    - python
+    - setuptools
+    - setuptools_scm
+  run:
+    - lima-core >=1.9.21
+
+test:
+  imports:
+    - Minipix.Interface
+
+about:
+  home: https://github.com/esrf-bliss/Lima
+  license: GPL
+  license_file: COPYING
+  summary: A library for the unified control of 2D detectors
