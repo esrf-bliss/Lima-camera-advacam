@@ -13,7 +13,7 @@ Properties
 ======================== =============== ================================= =====================================
 Property name	         Mandatory	 Default value	                   Description
 ======================== =============== ================================= =====================================
-config_path              Yes             N/A                               the detector yaml configuration file
+config_path              Yes             N/A                               the detector XML configuration file
 energy_threshold         No              3.6                               the energy threshold in keV 
 ======================== =============== ================================= =====================================
 

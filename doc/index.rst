@@ -2,7 +2,7 @@
 
 Minipix camera
 --------------
-
+.. image:: advacam.svg
 .. image:: minipix.png
 
 Introduction
@@ -12,7 +12,7 @@ ADVACAM's imaging cameras are direct conversion single photon counting pixel det
 
 MiniPIX TPX3 camera is miniaturized and low power radiation camera with the state of art Timepix3 chip. The Timepix3 is the CERN's latest pixel detector chip that records position, energy and time for every detected quantum of radiation.
 
-The Lima module has been tested with Pixet SDK **1.8.0**. A conda package **lima-camera-minipix** is available from anaconda.org esrf-bcu channel
+The Lima module has been tested with Pixet SDK **1.7.8**. A conda package **lima-camera-minipix** is available from anaconda.org esrf-bcu channel
 
 Monochrome and color cameras are supported with these SDK versions.
 
@@ -44,7 +44,7 @@ Small example showing possible ways to initialize:
   from Minipix.Interface import Interface
   from Lima import Core
 
-  hwint = Interface(config_path='/opt/pixet/factory/MiniPIX-J06-@105.xml')
+  hwint = Interface(config_path='/opt/pixet/factory/MiniPIX-J06-W0105.xml')
 
   cam = hwint.camera
 
@@ -72,10 +72,14 @@ N/A
 Configuration
 `````````````
 
-ADVACAM provides you with a configuration yaml file, specific to your detector. Default path can be /opt/pixet/factory, for instance /opt/pixet/factory/MiniPIX-J06-@105.xml, where *J06-W105* is the product identifier of the detector.
+ADVACAM provides you with a XML configuration file, specific to your detector. Default path can be /opt/pixet/factory, for instance /opt/pixet/factory/MiniPIX-J06-W105.xml, where *J06-W0105* is the product identifier of the detector.
 
-When creating the Minipix Interface 
+When creating the Minipix Interface object you must passed as argument the path of your XML configuration file:
 
+.. code-block:: python
+
+  hwint = Interface(config_path='/opt/pixet/factory/MiniPIX-J06-W0105.xml')
+  
 How to use
 ``````````
 
@@ -86,7 +90,7 @@ This is a python code example for a simple test:
   from Lima import Core
   from Minipix.Interface import Interface 
 
-  hwint = Interface(config_path='/opt/pixet/factory/MiniPIX-J06-@105.xml')
+  hwint = Interface(config_path='/opt/pixet/factory/MiniPIX-J06-W0105.xml')
 
   cam = hwint.camera
 
