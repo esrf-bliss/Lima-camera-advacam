@@ -73,7 +73,7 @@ class Camera:
     INTERNAL_TRIG = pypixet.pixet.PX_ACQMODE_NORMAL
     INTERNAL_TRIG_MULTI = pypixet.pixet.PX_ACQMODE_TRG_SWSTART
     
-    def __init__(self, config_file = "/opt/pixet/factory/MiniPIX-D05-W0051.xml", buffer_ctrl = None):
+    def __init__(self, config_file = "/opt/pixet/factory/MiniPIX-J06-W0105.xml", buffer_ctrl = None):
         
         pypixet.start()
 
