@@ -202,7 +202,7 @@ def get_control(config_path=None, **keys):
 
     if _MinipixInterface is None:
         if not config_path:
-            config_path = "/opt/pixet/factory/MiniPIX-D05-W0051.xml"
+            config_path = "/opt/pixet/factory/MiniPIX-J06-W0105.xml"
         _MinipixInterface = Interface(config_path)
         _MinipixCamera = _MinipixInterface.camera
     return Core.CtControl(_MinipixInterface)
