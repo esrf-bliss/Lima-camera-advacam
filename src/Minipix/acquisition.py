@@ -52,9 +52,11 @@ class acqThread(threading.Thread):
         rc = self.minipix.detector.doAdvancedAcquisition(
             self.minipix.acq_nb_frames,
             self.minipix.acq_expo_time,
-            pypixet.pixet.PX_ACQTYPE_FRAMES,
+            #pypixet.pixet.PX_ACQTYPE_FRAMES,
+            pypixet.pixet.PX_ACQTYPE_DATADRIVEN,
             self.minipix.trigger_mode,
-            0,
+            #0,
+            pypixet.pixet.PX_FTYPE_AUTODETECT,
             0,
             "",
         )
@@ -188,14 +190,21 @@ class Camera:
 
             # workaround since frame.data seems to be encoded data
             # but we dont have the encoding schema with Event+ToT mode
-            frame.save(f"/tmp/minipix_{value}.dat", 2, 0)
-            data = numpy.loadtxt(f"/tmp/minipix_{value}_Event.dat", dtype=numpy.uint16)
+            # frame.save(f"/tmp/minipix_{value}.dat", 2, 0)
+            # data = numpy.loadtxt(f"/tmp/minipix_{value}_Event.dat", dtype=numpy.uint16)
 
             # r_data = frame.data()
             # reshape data
             # data = numpy.array(r_data,dtype=numpy.int16)
             # data = data.reshape(self.width, self.height)
 
+            # new solution, since Anuj.Rathi@advacam.cz email 
+            # the frame.pixels()[0] contains indices of pixels hit by x-rays
+            # the bincount result may be too short (some empty bins after the last non-empty one --> need a different function
+            # test = np.bincount(frame.pixels()[0])  # is this the same as the "frame"?
+            data = numpy.histogram(frame.pixels()[0], self.width*self.height)[0]
+            data = test.reshape(self.width*self.height)
+            
             self.__buffer_mgr.copy_data(frame_id, data)
 
             frame_info = Core.HwFrameInfoType()
