@@ -75,6 +75,7 @@ class Interface(Core.HwInterface):
     @Core.DEB_MEMBER_FUNCT
     def stopAcq(self):
         self.__camera.stopAcq()
+        self.__acquisition_start_flag = False
 
     @Core.DEB_MEMBER_FUNCT
     def getStatus(self):

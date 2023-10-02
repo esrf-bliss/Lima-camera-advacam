@@ -52,10 +52,8 @@ class acqThread(threading.Thread):
         rc = self.minipix.detector.doAdvancedAcquisition(
             self.minipix.acq_nb_frames,
             self.minipix.acq_expo_time,
-            #pypixet.pixet.PX_ACQTYPE_FRAMES,
-            pypixet.pixet.PX_ACQTYPE_DATADRIVEN,
+            pypixet.pixet.PX_ACQTYPE_FRAMES,
             self.minipix.trigger_mode,
-            #0,
             pypixet.pixet.PX_FTYPE_AUTODETECT,
             0,
             "",
@@ -92,6 +90,22 @@ class Camera:
     INTERNAL_TRIG = pypixet.pixet.PX_ACQMODE_NORMAL
     INTERNAL_TRIG_MULTI = pypixet.pixet.PX_ACQMODE_TRG_SWSTART
 
+    # frame data types
+    (
+        DT_CHAR,
+        DT_BYTE,
+        DT_I16,
+        DT_U16,
+        DT_I32,
+        DT_U32,
+        DT_I64,
+        DT_U64,
+        DT_FLOAT,
+        DT_DOUBLE,
+        DT_BOOL,
+        DT_STRING
+    ) = range(12)
+    
     @Core.DEB_MEMBER_FUNCT
     def __init__(
         self, config_file="/opt/pixet/factory/MiniPIX-J06-W0105.xml", buffer_ctrl=None
@@ -114,7 +128,6 @@ class Camera:
         time.sleep(1)
 
         self.detector.setOperationMode(self.PX_TPX3_OPM_EVENT_ITOT)
-        time.sleep(1)
 
         detector = self.detector
         print("DETECTOR INFO")
@@ -188,23 +201,20 @@ class Camera:
             frame_size = frame_dim.getMemSize()
             frame_id = self.__acquired_frames
 
-            # workaround since frame.data seems to be encoded data
-            # but we dont have the encoding schema with Event+ToT mode
-            # frame.save(f"/tmp/minipix_{value}.dat", 2, 0)
-            # data = numpy.loadtxt(f"/tmp/minipix_{value}_Event.dat", dtype=numpy.uint16)
+            # for the time being only event+itot mode supported and
+            # event subframe is #1 with type int16 (signed)
+            r_data = frame.subFrames()[1].data()
+            name = frame.subFrames()[0].frameName()
+            ftype = frame.subFrames()[0].frameType()
+            deb.Trace(f"subframe 0 name {name} and type {ftype}")
+            name = frame.subFrames()[1].frameName()
+            ftype = frame.subFrames()[1].frameType()
+            deb.Trace(f"subFrame 1 name {name} and type {ftype}")
 
-            # r_data = frame.data()
             # reshape data
-            # data = numpy.array(r_data,dtype=numpy.int16)
-            # data = data.reshape(self.width, self.height)
+            data = numpy.array(r_data,dtype=numpy.int16)
+            data = data.reshape(self.width, self.height)
 
-            # new solution, since Anuj.Rathi@advacam.cz email 
-            # the frame.pixels()[0] contains indices of pixels hit by x-rays
-            # the bincount result may be too short (some empty bins after the last non-empty one --> need a different function
-            # test = np.bincount(frame.pixels()[0])  # is this the same as the "frame"?
-            data = numpy.histogram(frame.pixels()[0], self.width*self.height)[0]
-            data = test.reshape(self.width*self.height)
-            
             self.__buffer_mgr.copy_data(frame_id, data)
 
             frame_info = Core.HwFrameInfoType()
@@ -213,11 +223,6 @@ class Camera:
 
             # raise the new frame !
             self.__buffer_mgr.newFrameReady(frame_info)
-
-            del data
-            # frame.save() creates 4 files Event.dat, Event.dat.dsc, iToT.dat and iTot.dat.dsc
-            for f in glob.glob("/tmp/minipix_*"):
-                os.remove(f)
 
         frame.destroy()
 
@@ -252,6 +257,7 @@ class Camera:
         if self.__acquired_frames == 0:
             self.acqthread = acqThread(self)
             self.acqthread.start()
+            time.sleep(0.03)
 
         self.__status = self.RUNNING
 
