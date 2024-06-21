@@ -59,13 +59,6 @@ class Minipix(PyTango.LatestDeviceImpl):
     def __init__(self, *args):
         PyTango.LatestDeviceImpl.__init__(self, *args)
 
-        self.__OperationMode = {
-            Camera.OPERATION_MODES[0]: Camera.OPERATION_MODES[0],
-            Camera.OPERATION_MODES[1]: Camera.OPERATION_MODES[1],
-            Camera.OPERATION_MODES[2]: Camera.OPERATION_MODES[2],
-            Camera.OPERATION_MODES[3]: Camera.OPERATION_MODES[3],
-        }
-
         self.__Attribute2FunctionBase = {
             #    'temperature_sp': 'TemperatureSP',
         }
@@ -86,6 +79,11 @@ class Minipix(PyTango.LatestDeviceImpl):
         self.set_state(PyTango.DevState.ON)
         self.get_device_properties(self.get_device_class())
 
+        self.__OperationMode = {}
+        for mode in _MinipixCamera.OPERATION_MODES:
+            self.__OperationMode[_MinipixCamera.OPERATION_MODES[mode]] = mode
+        print (self.__OperationMode)
+        
         if self.energy_threshold:
             _MinipixCamera.energy_threshold = self.energy_threshold
 
