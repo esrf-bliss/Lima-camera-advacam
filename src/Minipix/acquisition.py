@@ -69,26 +69,26 @@ class Camera:
     Core.DEB_CLASS(Core.DebModCamera, "Minipix.Camera")
     # Detector states
     ERROR, READY, RUNNING = range(3)
-    
+
     # Detector settings
     SET_BIAS_VOLTAGE = 200
     ENERGY_THRESHOLD = 3.6
-    
+
     # More flags
-    px  = pypixet.pixet
-    
+    px = pypixet.pixet
+
     PX_THLFLG_ENERGY = px.PX_THLFLG_ENERGY
 
     PX_TPX3_OPM_TOATOT = px.PX_TPX3_OPM_TOATOT
     PX_TPX3_OPM_TOA = px.PX_TPX3_OPM_TOA
     PX_TPX3_OPM_EVENT_ITOT = px.PX_TPX3_OPM_EVENT_ITOT
     PX_TPX3_OPM_TOT_NOTOA = px.PX_TPX3_OPM_TOT_NOTOA
-    
+
     TPX3_OPERATION_MODES = {
         PX_TPX3_OPM_TOATOT: "ToA+ToT",
         PX_TPX3_OPM_TOA: "ToA",
         PX_TPX3_OPM_EVENT_ITOT: "Event+iToT",
-        PX_TPX3_OPM_TOT_NOTOA: "ToT"
+        PX_TPX3_OPM_TOT_NOTOA: "ToT",
     }
     PX_MPX3_OPM_SPM_1CH = px.PX_MPX3_OPM_SPM_1CH
     PX_MPX3_OPM_SPM_2CH = px.PX_MPX3_OPM_SPM_2CH
@@ -99,13 +99,13 @@ class Camera:
         PX_MPX3_OPM_SPM_2CH: "SPM_2ch",
         PX_MPX3_OPM_CSM: "CSM",
     }
-    
+
     PX_MPX3_GAIN_SUPER_NARROW = px.PX_MPX3_GAIN_SUPER_NARROW
     PX_MPX3_GAIN_NARROW = px.PX_MPX3_GAIN_NARROW
     PX_MPX3_GAIN_BROAD = px.PX_MPX3_GAIN_BROAD
 
     MPX3_GAIN_MODES = {
-        PX_MPX3_GAIN_SUPER_NARROW:"Super_Narrow",
+        PX_MPX3_GAIN_SUPER_NARROW: "Super_Narrow",
         PX_MPX3_GAIN_NARROW: "Narrow",
         PX_MPX3_GAIN_BROAD: "Broad",
     }
@@ -131,9 +131,9 @@ class Camera:
         DT_FLOAT,
         DT_DOUBLE,
         DT_BOOL,
-        DT_STRING
+        DT_STRING,
     ) = range(12)
-    
+
     @Core.DEB_MEMBER_FUNCT
     def __init__(
         self, config_file="/opt/pixet/factory/MiniPIX-J06-W0105.xml", buffer_ctrl=None
@@ -148,14 +148,15 @@ class Camera:
         px_type = self.detector.deviceType()
         px_model = self.detector.fullName().split()[0].lower()
         if px_model not in ["widepix", "minipix"]:
-            raise ValueError("Only support WidePix(MPX3 chip) and Minipix (TPX3 chip) models")
+            raise ValueError(
+                "Only support WidePix(MPX3 chip) and Minipix (TPX3 chip) models"
+            )
 
         # minipix is a single chip detector
         # widepix family supports 1x5, 2x5, 1x10, 2x10, 1x15, 2x15 chips detectors
         self.model = px_model
         self.nb_chips = self.detector.chipCount()
-            
-       
+
         self.detector.loadConfigFromFile(config_file)
         time.sleep(5)
         if self.model == "minipix":
@@ -164,7 +165,7 @@ class Camera:
         elif self.model == "widepix":
             self.detector.setOperationMode(self.PX_MPX3_OPM_SPM_1CH)
             self.OPERATION_MODES = self.MPX3_OPERATION_MODES
-            
+
         detector = self.detector
         print("DETECTOR INFO")
         print("  Model:               ", self.model.upper())
@@ -177,9 +178,17 @@ class Camera:
         )  # list of detector chip IDs
         print("")
         if self.model == "minipix":
-            print("Energy threshlod:       ",  self.energy_threshold0, " keV")
+            print("Energy threshlod:       ", self.energy_threshold0, " keV")
         if self.model == "widepix":
-            print("Energy threshlods:      ",  "THL0 = ", self.energy_threshold0, " keV ", "THL1 = ", self.energy_threshold1, " keV")            
+            print(
+                "Energy threshlods:      ",
+                "THL0 = ",
+                self.energy_threshold0,
+                " keV ",
+                "THL1 = ",
+                self.energy_threshold1,
+                " keV",
+            )
         # gets the threshold of chip 0 in energy
         print(
             "  Set bias voltage:    ", self.bias_voltage, " V"
@@ -193,11 +202,17 @@ class Camera:
         )
         refsup = True if detector.isSensorRefreshSupported() == 1 else False
         print("  Refresh support:     ", refsup)
-        if self.model ==" minipix":
-            print("  Mode:                ", self.TPX3_OPERATION_MODES[detector.operationMode()])
+        if self.model == " minipix":
+            print(
+                "  Mode:                ",
+                self.TPX3_OPERATION_MODES[detector.operationMode()],
+            )
         else:
-            print("  Mode:                ", self.MPX3_OPERATION_MODES[detector.operationMode()])
-            
+            print(
+                "  Mode:                ",
+                self.MPX3_OPERATION_MODES[detector.operationMode()],
+            )
+
         print("  Temperature:         ", self.temperature, " degC")
         print("")
 
@@ -225,7 +240,7 @@ class Camera:
                 self.PX_MPX3_OPM_SPM_2CH,
                 self.PX_MPX3_OPM_CSM,
             ]
-            
+
         # Humm, Lima part if Camera is created from Interface object ctor
         if buffer_ctrl:
             self.__buffer_ctrl = weakref.ref(buffer_ctrl)
@@ -266,7 +281,7 @@ class Camera:
             else:
                 r_data = frame.data()
             # reshape data
-            data = numpy.array(r_data,dtype=numpy.int16)
+            data = numpy.array(r_data, dtype=numpy.int16)
             data = data.reshape(self.width, self.height)
 
             self.__buffer_mgr.copy_data(frame_id, data)
@@ -377,7 +392,7 @@ class Camera:
             return 16
         elif self.model == "widepix":
             return self.MPX3_COUNTER_DEPTH_MODES[self.detector.counterDepth()]
-        
+
     @property
     def buffer_ctrl(self):
         return self.__buffer_ctrl()
@@ -403,11 +418,10 @@ class Camera:
 
     @property
     def energy_threshold0(self):
-        if self.model == "minipix": 
+        if self.model == "minipix":
             return self.detector.threshold(0, self.PX_THLFLG_ENERGY)
         else:
             return self.detector.threshold(0, 0, self.PX_THLFLG_ENERGY)
-            
 
     @energy_threshold0.setter
     def energy_threshold0(self, value):
@@ -422,12 +436,11 @@ class Camera:
 
     @property
     def energy_threshold1(self):
-        if self.model == "minipix": 
+        if self.model == "minipix":
             return None
         else:
             # suppose that all the chips have been set with the same thl
             return self.detector.threshold(0, 1, self.PX_THLFLG_ENERGY)
-            
 
     @energy_threshold1.setter
     def energy_threshold1(self, value):
@@ -440,7 +453,6 @@ class Camera:
         for ch in self.nb_chips:
             self.detector.setThreshold(ch, 1, value, self.PX_THLFLAG_ENERGY)
 
-                
     @property
     def bias_voltage(self):
         return self.detector.bias()
