@@ -82,8 +82,8 @@ class Minipix(PyTango.LatestDeviceImpl):
         self.__OperationMode = {}
         for mode in _MinipixCamera.OPERATION_MODES:
             self.__OperationMode[_MinipixCamera.OPERATION_MODES[mode]] = mode
-        print (self.__OperationMode)
-        
+        print(self.__OperationMode)
+
         if self.energy_threshold:
             _MinipixCamera.energy_threshold = self.energy_threshold
 
@@ -130,7 +130,6 @@ class MinipixClass(PyTango.DeviceClass):
     }
 
     attr_list = {
-        
         "bias_voltage": [
             [PyTango.DevDouble, PyTango.SCALAR, PyTango.READ_WRITE],
             {

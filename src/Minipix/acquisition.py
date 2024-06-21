@@ -139,7 +139,7 @@ class Camera:
         self, config_file="/opt/pixet/factory/MiniPIX-J06-W0105.xml", buffer_ctrl=None
     ):
         pypixet.start()
-
+        time.sleep(5)
         # below example code copied from pixetacq_server.py provided by ID20
         # (https://confluence.esrf.fr/pages/viewpage.action?spaceKey=ID20WK&title=MiniPIX)
 
@@ -158,7 +158,7 @@ class Camera:
         self.nb_chips = self.detector.chipCount()
 
         self.detector.loadConfigFromFile(config_file)
-        time.sleep(5)
+
         if self.model == "minipix":
             self.detector.setOperationMode(self.PX_TPX3_OPM_EVENT_ITOT)
             self.OPERATION_MODES = self.TPX3_OPERATION_MODES
@@ -429,10 +429,10 @@ class Camera:
         if value < 0 or value > 120:
             raise ValueError("Invalid energy threshold, range = [0,120] keV")
         if self.model == "minipix":
-            self.detector.setThreshold(0, value, self.PX_THLFLAG_ENERGY)
+            self.detector.setThreshold(0, value, self.PX_THLFLG_ENERGY)
         else:
-            for ch in self.nb_chips:
-                self.detector.setThreshold(ch, 0, value, self.PX_THLFLAG_ENERGY)
+            for ch in range(self.nb_chips):
+                self.detector.setThreshold(ch, 0, value, self.PX_THLFLG_ENERGY)
 
     @property
     def energy_threshold1(self):
@@ -479,9 +479,11 @@ class Camera:
 
     @operation_mode.setter
     def operation_mode(self, value):
-        if value not in self.OPERATION_MODES:
+        if value not in self.OPERATION_MODES.values():
             raise ValueError("Invalid operation mode")
-        self.detector.setOperationMode(self.OPERATION_MODES.index(value))
+        d = self.OPERATION_MODES
+        mode = list(d.keys())[list(d.values()).index(value)]
+        self.detector.setOperationMode(mode)
 
     # for pytango automatic wrapping
 
@@ -519,7 +521,7 @@ class Camera:
         return self.temperature
 
     def getOperationMode(self):
-        return self.operation_mode
+        return self.detector.operationMode()
 
     def setOperationMode(self, value):
         self.operation_mode = value
