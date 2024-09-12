@@ -85,7 +85,7 @@ class Minipix(PyTango.LatestDeviceImpl):
         print(self.__OperationMode)
 
         if self.energy_threshold:
-            _MinipixCamera.energy_threshold = self.energy_threshold
+            _MinipixCamera.setEnergyThreshold(self.energy_threshold)
 
     # ------------------------------------------------------------------
     #    getAttrStringValueList command:
