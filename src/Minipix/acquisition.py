@@ -27,6 +27,7 @@ import time, os, glob
 import threading
 import numpy
 import weakref
+import enum
 
 try:
     from Lima import Core
@@ -64,6 +65,8 @@ class acqThread(threading.Thread):
 
         deb.Trace(f"Acq thread #{rc} finished")
 
+#Enum
+MODEL_TYPE = enum.Enum('MODEL_TYPE', ['UNKNOWN','MPX3','TPX3'])
 
 class Camera:
     Core.DEB_CLASS(Core.DebModCamera, "Minipix.Camera")
@@ -134,6 +137,12 @@ class Camera:
         DT_STRING,
     ) = range(12)
 
+
+    MODEL_NAME_2_MODEL_TYPE = {'minipix' : MODEL_TYPE.TPX3,
+                               'widepix' : MODEL_TYPE.MPX3,
+                               'advapix' : MODEL_TYPE.TPX3,
+                               }
+                      
     @Core.DEB_MEMBER_FUNCT
     def __init__(
         self, config_file="/opt/pixet/factory/MiniPIX-J06-W0105.xml", buffer_ctrl=None
@@ -146,10 +155,12 @@ class Camera:
         alldevices = pypixet.pixet.devices()  # get all devices (including motors, ...)
         self.detector = alldevices[0]  # get first connected detector
         px_type = self.detector.deviceType()
-        px_model = self.detector.fullName().split()[0].lower()
-        if px_model not in ["widepix", "minipix"]:
+        px_model_str = self.detector.fullName().split()[0].lower()
+        px_model = self.MODEL_NAME_2_MODEL_TYPE.get(px_model_str,MODEL_TYPE.UNKNOWN)
+        if px_model is MODEL_TYPE.UNKNOWN:
             raise ValueError(
-                "Only support WidePix(MPX3 chip) and Minipix (TPX3 chip) models"
+                f"Model name is {px_model_str}; not manage yet"
+                f" Only support {list(self.MODEL_NAME_2_MODEL_TYPE.items())}"
             )
 
         # minipix is a single chip detector
@@ -159,16 +170,16 @@ class Camera:
 
         self.detector.loadConfigFromFile(config_file)
 
-        if self.model == "minipix":
+        if self.model is MODEL_TYPE.TPX3:
             self.detector.setOperationMode(self.PX_TPX3_OPM_EVENT_ITOT)
             self.OPERATION_MODES = self.TPX3_OPERATION_MODES
-        elif self.model == "widepix":
+        elif self.model is MODEL_TYPE.MPX3:
             self.detector.setOperationMode(self.PX_MPX3_OPM_SPM_1CH)
             self.OPERATION_MODES = self.MPX3_OPERATION_MODES
 
         detector = self.detector
         print("DETECTOR INFO")
-        print("  Model:               ", self.model.upper())
+        print("  Model:               ", px_model_str)
         print("  Name:                ", detector.fullName())
         print("  Width x Height:      ", detector.width(), "X", detector.height())
         print("  Pixel count:         ", detector.pixelCount())
@@ -177,9 +188,9 @@ class Camera:
             "  Chip IDs:            ", detector.chipIDs()
         )  # list of detector chip IDs
         print("")
-        if self.model == "minipix":
+        if self.model is MODEL_TYPE.TPX3:
             print("Energy threshlod:       ", self.energy_threshold0, " keV")
-        if self.model == "widepix":
+        if self.model is MODEL_TYPE.MPX3:
             print(
                 "Energy threshlods:      ",
                 "THL0 = ",
@@ -202,7 +213,7 @@ class Camera:
         )
         refsup = True if detector.isSensorRefreshSupported() == 1 else False
         print("  Refresh support:     ", refsup)
-        if self.model == " minipix":
+        if self.model is MODEL_TYPE.TPX3:
             print(
                 "  Mode:                ",
                 self.TPX3_OPERATION_MODES[detector.operationMode()],
@@ -227,14 +238,14 @@ class Camera:
         self.__trigger_mode = self.INTERNAL_TRIG
         self.__supported_trigger_mode = [self.INTERNAL_TRIG, self.INTERNAL_TRIG_MULTI]
 
-        if self.model == "minipix":
+        if self.model is MODEL_TYPE.TPX3:
             self._supported_operation_mode = [
                 self.PX_TPX3_OPM_TOATOT,
                 self.PX_TPX3_OPM_TOA,
                 self.PX_TPX3_OPM_EVENT_ITOT,
                 self.PX_TPX3_OPM_TOT_NOTOA,
             ]
-        elif self.model == "widepix":
+        elif self.model is MODEL_TYPE.MPX3:
             self._supported_operation_mode = [
                 self.PX_MPX3_OPM_SPM_1CH,
                 self.PX_MPX3_OPM_SPM_2CH,
@@ -270,7 +281,7 @@ class Camera:
 
             # for the time being only event+itot mode supported and
             # event subframe is #1 with type int16 (signed)
-            if self.model == "minipix":
+            if self.model is MODEL_TYPE.TPX3:
                 r_data = frame.subFrames()[1].data()
                 name = frame.subFrames()[0].frameName()
                 ftype = frame.subFrames()[0].frameType()
@@ -278,7 +289,7 @@ class Camera:
                 name = frame.subFrames()[1].frameName()
                 ftype = frame.subFrames()[1].frameType()
                 deb.Trace(f"subFrame 1 name {name} and type {ftype}")
-            else:
+            else:               # MPX3
                 r_data = frame.data()
             # reshape data
             data = numpy.array(r_data, dtype=numpy.int16)
@@ -384,13 +395,13 @@ class Camera:
 
     @property
     def bpp(self):
-        if self.model == "minipix":
+        if self.model is MODEL_TYPE.TPX3:
             # According to the doc "AdvaPIX\ TPX3\ &\ MiniPIX\ TPX3\ -\ User\ Manual.pdf", page 7:
             # ToT & ToA: Tot 14bit, ToA 10bit, Fast ToA 4bit@640MHz
             # Only ToA:  ToA 14bit Only Fast ToA 4bit@640 MHz
             # Event Count & Integral ToT: Integral ToT 14bit, Hit Counter: 10bit
             return 16
-        elif self.model == "widepix":
+        elif self.model is MODEL_TYPE.MPX3:
             return self.MPX3_COUNTER_DEPTH_MODES[self.detector.counterDepth()]
 
     @property
@@ -418,9 +429,9 @@ class Camera:
 
     @property
     def energy_threshold0(self):
-        if self.model == "minipix":
+        if self.model is MODEL_TYPE.TPX3:
             return self.detector.threshold(0, self.PX_THLFLG_ENERGY)
-        else:
+        else:                   # MPX3
             return self.detector.threshold(0, 0, self.PX_THLFLG_ENERGY)
 
     @energy_threshold0.setter
@@ -428,23 +439,24 @@ class Camera:
         # do not know the valid range !! suppose up to 120 keV
         if value < 0 or value > 120:
             raise ValueError("Invalid energy threshold, range = [0,120] keV")
-        if self.model == "minipix":
-            self.detector.setThreshold(0, value, self.PX_THLFLG_ENERGY)
-        else:
+        if self.model is MODEL_TYPE.TPX3:
+            for ch in range(self.nb_chips):
+                self.detector.setThreshold(ch, value, self.PX_THLFLG_ENERGY)
+        else:                   # MPX3
             for ch in range(self.nb_chips):
                 self.detector.setThreshold(ch, 0, value, self.PX_THLFLG_ENERGY)
 
     @property
     def energy_threshold1(self):
-        if self.model == "minipix":
+        if self.model is MODEL_TYPE.TPX3:
             return None
-        else:
+        else:                   # MPX3
             # suppose that all the chips have been set with the same thl
             return self.detector.threshold(0, 1, self.PX_THLFLG_ENERGY)
 
     @energy_threshold1.setter
     def energy_threshold1(self, value):
-        if self.model == "minipix":
+        if self.model is MODEL_TYPE.TPX3:
             raise ValueError("MiniPix model only supports 1 threshold")
 
         # do not know the valid range !! suppose up to 120 keV
