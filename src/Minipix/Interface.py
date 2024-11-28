@@ -35,9 +35,8 @@ from .acquisition import Camera
 class Interface(Core.HwInterface):
     Core.DEB_CLASS(Core.DebModCamera, "Interface")
 
-    def __init__(self, config_file="/opt/pixet/factory/MiniPIX-J06-W0105.xml"):
+    def __init__(self, config_file=None):
         Core.HwInterface.__init__(self)
-        self.__config_file = config_file
 
         self.__buffer = Core.SoftBufferCtrlObj()
         self.__camera = Camera(config_file, self.__buffer)

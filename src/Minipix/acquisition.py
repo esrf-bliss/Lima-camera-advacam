@@ -28,7 +28,7 @@ import threading
 import numpy
 import weakref
 import enum
-
+import glob
 try:
     from Lima import Core
 except:
@@ -145,10 +145,16 @@ class Camera:
                       
     @Core.DEB_MEMBER_FUNCT
     def __init__(
-        self, config_file="/opt/pixet/factory/MiniPIX-J06-W0105.xml", buffer_ctrl=None
+        self, config_file=None, buffer_ctrl=None
     ):
+        if config_file is None: # take the factory configuration
+            xml_file_path = glob.glob('/opt/pixet/factory/*.xml')
+            nb_config_file = len(xml_file_path)
+            if nb_config_file == 1:
+                config_file = xml_file_path[0]
+            else:
+                raise RuntimeError("You should define a configuration file") 
         pypixet.start()
-        time.sleep(5)
         # below example code copied from pixetacq_server.py provided by ID20
         # (https://confluence.esrf.fr/pages/viewpage.action?spaceKey=ID20WK&title=MiniPIX)
 

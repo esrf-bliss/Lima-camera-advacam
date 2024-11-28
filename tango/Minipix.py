@@ -195,11 +195,12 @@ def get_control(config_path=None, **keys):
     global _MinipixCamera
     global _MinipixInterface
 
-    print("Minipix config path: ", config_path)
+    if config_path is None:
+        print("Minipix will use factory configuration in '/opt/pixet/factory'")
+    else:
+        print("Minipix config path: ", config_path)
 
     if _MinipixInterface is None:
-        if not config_path:
-            config_path = "/opt/pixet/factory/MiniPIX-J06-W0105.xml"
         _MinipixInterface = Interface(config_path)
         _MinipixCamera = _MinipixInterface.camera
     return Core.CtControl(_MinipixInterface)
