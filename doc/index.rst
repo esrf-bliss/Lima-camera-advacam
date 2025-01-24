@@ -1,18 +1,20 @@
-.. _camera-minipix:
+.. _camera-advacam:
 
-Minipix camera
---------------
-.. image:: advacam.svg
-.. image:: minipix.png
+Advacam cameras
+---------------
+.. image:: advacam.png
+.. image:: minipix_small.png
+.. image:: advapix.png
+.. image:: Advacam_widepix_400x400.png
 
 Introduction
 ````````````
 
 ADVACAM's imaging cameras are direct conversion single photon counting pixel detectors that represent the cutting edge of current radiation imaging technology. The term “single photon counting” means that every single photon of X-ray radiation detected in individual pixel is processed and counted. The technology brings two major advantages in comparison to the conventional X-ray imaging - high contrast together with sharp high resolution images and spectral information of the radiation that allows material specific information to be displayed in colors.
 
-MiniPIX TPX3 camera is miniaturized and low power radiation camera with the state of art Timepix3 chip. The Timepix3 is the CERN's latest pixel detector chip that records position, energy and time for every detected quantum of radiation.
+We now support MiniPix, WidePix and AdvaPix models. 
 
-The Lima module has been tested with Pixet SDK **1.7.8**. A conda package **lima-camera-minipix** is available from anaconda.org esrf-bcu channel
+The Lima module has been tested with Pixet SDK **1.7.8**. A conda package **lima-camera-advacam** is available from anaconda.org esrf-bcu channel
 
 Monochrome and color cameras are supported with these SDK versions.
 
@@ -35,13 +37,13 @@ Implementing a new plugin for new detector is driven by the LIMA framework but t
 Camera initialisation
 .....................
 
-The camera will be initialized by creating Minipix.Interface object.
+The camera will be initialized by creating Advacam.Interface object.
 
 Small example showing possible ways to initialize:
 
 .. code-block:: python
 
-  from Minipix.Interface import Interface
+  from Advacam.Interface import Interface
   from Lima import Core
 
   # if config_path is None, Lima will use the factory configuration.
@@ -76,7 +78,7 @@ Configuration
 
 ADVACAM provides you with a XML configuration file, specific to your detector. Default path can be /opt/pixet/factory, for instance /opt/pixet/factory/MiniPIX-J06-W105.xml, where *J06-W0105* is the product identifier of the detector.
 
-When creating the Minipix Interface object you must passed as argument the path of your XML configuration file:
+When creating the Advacam Interface object you must passed as argument the path of your XML configuration file:
 
 .. code-block:: python
 
@@ -90,11 +92,9 @@ This is a python code example for a simple test:
 .. code-block:: python
 
   from Lima import Core
-  from Minipix.Interface import Interface 
+  from Advacam.Interface import Interface 
 
   hwint = Interface(config_path='/opt/pixet/factory/MiniPIX-J06-W0105.xml')
-
-  cam = hwint.camera
 
   ct = Core.CtControl(hwint)
 

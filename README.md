@@ -1,22 +1,22 @@
 [![License](https://img.shields.io/github/license/esrf-bliss/lima.svg?style=flat)](https://opensource.org/licenses/GPL-3.0)
 [![Gitter](https://img.shields.io/gitter/room/esrf-bliss/lima.svg?style=flat)](https://gitter.im/esrf-bliss/LImA)
-[![Conda](https://img.shields.io/conda/dn/esrf-bcu/lima-camera-minipix.svg?style=flat)](https://anaconda.org/esrf-bcu)
-[![Version](https://img.shields.io/conda/vn/esrf-bcu/lima-camera-minipix.svg?style=flat)](https://anaconda.org/esrf-bcu)
-[![Platform](https://img.shields.io/conda/pn/esrf-bcu/lima-camera-minipix.svg?style=flat)](https://anaconda.org/esrf-bcu)
+[![Conda](https://img.shields.io/conda/dn/esrf-bcu/lima-camera-advacam.svg?style=flat)](https://anaconda.org/esrf-bcu)
+[![Version](https://img.shields.io/conda/vn/esrf-bcu/lima-camera-advacam.svg?style=flat)](https://anaconda.org/esrf-bcu)
+[![Platform](https://img.shields.io/conda/pn/esrf-bcu/lima-camera-advacam.svg?style=flat)](https://anaconda.org/esrf-bcu)
 
-# LImA Minipix Camera Plugin
+# LImA Advacam Camera Plugin
 
-This is the LImA plugin for Minipix cameras.
+This is the LImA plugin for Advacam cameras.
 
 ## Install
 
 ### Camera python
 
-conda install -c esrf-bcu lima-camera-minipix
+conda install -c esrf-bcu lima-camera-advacam
 
 ### Camera tango device server
 
-conda install -c tango-controls -c esrf-bcu lima-camera-minipix-tango
+conda install -c tango-controls -c esrf-bcu lima-camera-advacam-tango
 
 # LImA
 

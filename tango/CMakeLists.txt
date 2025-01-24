@@ -1,7 +1,7 @@
 ###########################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-#  Copyright (C) : 2009-2023
+#  Copyright (C) : 2009-2025
 #  European Synchrotron Radiation Facility
 #  CS40220 38043 Grenoble Cedex 9
 #  FRANCE
@@ -22,9 +22,9 @@
 #  along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.6)
 
-project(minipix_tango NONE)
+project(advacam NONE)
 
 # use lima toolbox function,
 # if cmake is ran out of camera mother project, check python environment  
@@ -35,4 +35,4 @@ if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   include(LimaTools)
 endif()
 
-limatools_install_camera_tango("Minipix.py")
+limatools_install_camera_tango("Advacam.py")

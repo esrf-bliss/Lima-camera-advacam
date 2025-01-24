@@ -1,7 +1,7 @@
 ############################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-# Copyright (C) : 2009-2024
+# Copyright (C) : 2009-2025
 # European Synchrotron Radiation Facility
 # CS40220 38043 Grenoble Cedex 9
 # FRANCE
@@ -36,32 +36,32 @@ except:
 
 
 class acqThread(threading.Thread):
-    Core.DEB_CLASS(Core.DebModCamera, "Minipix.Camera.acqThread")
+    Core.DEB_CLASS(Core.DebModCamera, "Advacam.Camera.acqThread")
 
     @Core.DEB_MEMBER_FUNCT
-    def __init__(self, minipix):
+    def __init__(self, advacam):
         threading.Thread.__init__(self)
-        self.minipix = minipix
+        self.advacam = advacam
 
     @Core.DEB_MEMBER_FUNCT
     def run(self):
         deb.Trace("Starting acqThread")
-        if self.minipix.buffer_ctrl:
-            buffer_mgr = self.minipix.buffer_ctrl.getBuffer()
+        if self.advacam.buffer_ctrl:
+            buffer_mgr = self.advacam.buffer_ctrl.getBuffer()
             buffer_mgr.setStartTimestamp(Core.Timestamp.now())
 
-        rc = self.minipix.detector.doAdvancedAcquisition(
-            self.minipix.acq_nb_frames,
-            self.minipix.acq_expo_time,
+        rc = self.advacam.detector.doAdvancedAcquisition(
+            self.advacam.acq_nb_frames,
+            self.advacam.acq_expo_time,
             pypixet.pixet.PX_ACQTYPE_FRAMES,
-            self.minipix.trigger_mode,
+            self.advacam.trigger_mode,
             pypixet.pixet.PX_FTYPE_AUTODETECT,
             0,
             "",
         )
         deb.Trace(f"acq thread #{rc}: stop the Acq.")
 
-        self.minipix._stopAcq()
+        self.advacam._stopAcq()
 
         deb.Trace(f"Acq thread #{rc} finished")
 
@@ -69,7 +69,7 @@ class acqThread(threading.Thread):
 MODEL_TYPE = enum.Enum('MODEL_TYPE', ['UNKNOWN','MPX3','TPX3'])
 
 class Camera:
-    Core.DEB_CLASS(Core.DebModCamera, "Minipix.Camera")
+    Core.DEB_CLASS(Core.DebModCamera, "Advacam.Camera")
     # Detector states
     ERROR, READY, RUNNING = range(3)
 
@@ -463,7 +463,7 @@ class Camera:
     @energy_threshold1.setter
     def energy_threshold1(self, value):
         if self.model is MODEL_TYPE.TPX3:
-            raise ValueError("MiniPix model only supports 1 threshold")
+            raise ValueError("Advacam model only supports 1 threshold")
 
         # do not know the valid range !! suppose up to 120 keV
         if value < 0 or value > 120:
@@ -546,18 +546,18 @@ class Camera:
 
 
 def main():
-    minipix = Camera()
+    advacam = Camera()
 
-    minipix.acqNbFrames = 10
-    minipix.acqExpoTime = 0.4
+    advacam.acqNbFrames = 10
+    advacam.acqExpoTime = 0.4
 
-    minipix.prepareAcq()
-    minipix.startAcq()
+    advacam.prepareAcq()
+    advacam.startAcq()
 
     nb_frames = 1
-    while minipix.getStatus() != "Ready":
-        if minipix.acquiredFrames == nb_frames:
-            minipix.startAcq()
+    while advacam.getStatus() != "Ready":
+        if advacam.acquiredFrames == nb_frames:
+            advacam.startAcq()
             nb_frames += 1
 
 

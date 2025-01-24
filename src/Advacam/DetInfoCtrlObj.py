@@ -1,7 +1,7 @@
 ############################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-# Copyright (C) : 2009-2023
+# Copyright (C) : 2009-2025
 # European Synchrotron Radiation Facility
 # CS40220 38043 Grenoble Cedex 9
 # FRANCE
@@ -75,7 +75,7 @@ class DetInfoCtrlObj(Core.HwDetInfoCtrlObj):
 
     # @Core.Debug.DEB_MEMBER_FUNCT
     def getDetectorType(self):
-        return "Minipix"
+        return "Advacam"
 
     # @Core.Debug.DEB_MEMBER_FUNCT
     def getDetectorModel(self):
