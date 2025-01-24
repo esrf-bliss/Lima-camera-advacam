@@ -1,7 +1,7 @@
 ############################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-# Copyright (C) : 2009-2023
+# Copyright (C) : 2009-2024
 # European Synchrotron Radiation Facility
 # CS40220 38043 Grenoble Cedex 9
 # FRANCE
@@ -35,9 +35,8 @@ from .acquisition import Camera
 class Interface(Core.HwInterface):
     Core.DEB_CLASS(Core.DebModCamera, "Interface")
 
-    def __init__(self, config_file="/opt/pixet/factory/MiniPIX-J06-W0105.xml"):
+    def __init__(self, config_file=None):
         Core.HwInterface.__init__(self)
-        self.__config_file = config_file
 
         self.__buffer = Core.SoftBufferCtrlObj()
         self.__camera = Camera(config_file, self.__buffer)
@@ -75,6 +74,7 @@ class Interface(Core.HwInterface):
     @Core.DEB_MEMBER_FUNCT
     def stopAcq(self):
         self.__camera.stopAcq()
+        self.__acquisition_start_flag = False
 
     @Core.DEB_MEMBER_FUNCT
     def getStatus(self):

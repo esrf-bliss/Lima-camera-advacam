@@ -59,13 +59,6 @@ class Minipix(PyTango.LatestDeviceImpl):
     def __init__(self, *args):
         PyTango.LatestDeviceImpl.__init__(self, *args)
 
-        self.__OperationMode = {
-            Camera.OPERATION_MODES[0]: Camera.OPERATION_MODES[0],
-            Camera.OPERATION_MODES[1]: Camera.OPERATION_MODES[1],
-            Camera.OPERATION_MODES[2]: Camera.OPERATION_MODES[2],
-            Camera.OPERATION_MODES[3]: Camera.OPERATION_MODES[3],
-        }
-
         self.__Attribute2FunctionBase = {
             #    'temperature_sp': 'TemperatureSP',
         }
@@ -86,8 +79,13 @@ class Minipix(PyTango.LatestDeviceImpl):
         self.set_state(PyTango.DevState.ON)
         self.get_device_properties(self.get_device_class())
 
+        self.__OperationMode = {}
+        for mode in _MinipixCamera.OPERATION_MODES:
+            self.__OperationMode[_MinipixCamera.OPERATION_MODES[mode]] = mode
+        print(self.__OperationMode)
+
         if self.energy_threshold:
-            _MinipixCamera.energy_threshold = self.energy_threshold
+            _MinipixCamera.setEnergyThreshold(self.energy_threshold)
 
     # ------------------------------------------------------------------
     #    getAttrStringValueList command:
@@ -132,7 +130,6 @@ class MinipixClass(PyTango.DeviceClass):
     }
 
     attr_list = {
-        
         "bias_voltage": [
             [PyTango.DevDouble, PyTango.SCALAR, PyTango.READ_WRITE],
             {
@@ -198,11 +195,12 @@ def get_control(config_path=None, **keys):
     global _MinipixCamera
     global _MinipixInterface
 
-    print("Minipix config path: ", config_path)
+    if config_path is None:
+        print("Minipix will use factory configuration in '/opt/pixet/factory'")
+    else:
+        print("Minipix config path: ", config_path)
 
     if _MinipixInterface is None:
-        if not config_path:
-            config_path = "/opt/pixet/factory/MiniPIX-J06-W0105.xml"
         _MinipixInterface = Interface(config_path)
         _MinipixCamera = _MinipixInterface.camera
     return Core.CtControl(_MinipixInterface)

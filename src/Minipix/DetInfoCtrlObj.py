@@ -53,6 +53,10 @@ class DetInfoCtrlObj(Core.HwDetInfoCtrlObj):
     def getDefImageType(self):
         if self.__bpp == 16:
             return Core.Bpp16
+        elif self.__bpp == 12:
+            return Core.Bpp12
+        elif self.__bpp == 24:
+            return Core.Bpp24
         else:
             raise Core.Exception(Core.Hardware, Core.NotSupported)
 

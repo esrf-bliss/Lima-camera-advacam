@@ -44,6 +44,8 @@ Small example showing possible ways to initialize:
   from Minipix.Interface import Interface
   from Lima import Core
 
+  # if config_path is None, Lima will use the factory configuration.
+  # or you can specify the full path as follow.
   hwint = Interface(config_path='/opt/pixet/factory/MiniPIX-J06-W0105.xml')
 
   cam = hwint.camera
