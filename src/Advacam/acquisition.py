@@ -29,6 +29,7 @@ import numpy
 import weakref
 import enum
 import glob
+
 try:
     from Lima import Core
 except:
@@ -65,8 +66,10 @@ class acqThread(threading.Thread):
 
         deb.Trace(f"Acq thread #{rc} finished")
 
-#Enum
-MODEL_TYPE = enum.Enum('MODEL_TYPE', ['UNKNOWN','MPX3','TPX3'])
+
+# Enum
+MODEL_TYPE = enum.Enum("MODEL_TYPE", ["UNKNOWN", "MPX3", "TPX3"])
+
 
 class Camera:
     Core.DEB_CLASS(Core.DebModCamera, "Advacam.Camera")
@@ -137,32 +140,47 @@ class Camera:
         DT_STRING,
     ) = range(12)
 
+    MODEL_NAME_2_MODEL_TYPE = {
+        "minipix": MODEL_TYPE.TPX3,
+        "widepix": MODEL_TYPE.MPX3,
+        "advapix": MODEL_TYPE.TPX3,
+    }
 
-    MODEL_NAME_2_MODEL_TYPE = {'minipix' : MODEL_TYPE.TPX3,
-                               'widepix' : MODEL_TYPE.MPX3,
-                               'advapix' : MODEL_TYPE.TPX3,
-                               }
-                      
     @Core.DEB_MEMBER_FUNCT
-    def __init__(
-        self, config_file=None, buffer_ctrl=None
-    ):
-        if config_file is None: # take the factory configuration
-            xml_file_path = glob.glob('/opt/pixet/factory/*.xml')
+    def __init__(self, config_file=None, device_id="", buffer_ctrl=None):
+        if config_file is None:  # take the factory configuration
+            xml_file_path = glob.glob("/opt/pixet/factory/*.xml")
             nb_config_file = len(xml_file_path)
             if nb_config_file == 1:
                 config_file = xml_file_path[0]
             else:
-                raise RuntimeError("You should define a configuration file") 
+                raise RuntimeError("You should define a configuration file")
         pypixet.start()
         # below example code copied from pixetacq_server.py provided by ID20
         # (https://confluence.esrf.fr/pages/viewpage.action?spaceKey=ID20WK&title=MiniPIX)
 
         alldevices = pypixet.pixet.devices()  # get all devices (including motors, ...)
-        self.detector = alldevices[0]  # get first connected detector
+        print(f"Found {len(alldevices)} devices:")
+        for dev in range(len(alldevices)):
+            print(f" - device num. {dev} = {alldevices[dev].fullName()}")
+
+        if not len(alldevices):
+            raise RuntimeError("No device found")
+
+        self.detector = None
+        if device_id:
+            for device in alldevices:
+                if device.deviceID() == device_id.upper():
+                    self.detector = device
+            if not self.detector:
+                raise RuntimeError(f"Device with ID {device_id} is not available")
+        else:
+            # if no device_id provided use the first (single) one !!
+            self.detector = alldevices[0]
+
         px_type = self.detector.deviceType()
         px_model_str = self.detector.fullName().split()[0].lower()
-        px_model = self.MODEL_NAME_2_MODEL_TYPE.get(px_model_str,MODEL_TYPE.UNKNOWN)
+        px_model = self.MODEL_NAME_2_MODEL_TYPE.get(px_model_str, MODEL_TYPE.UNKNOWN)
         if px_model is MODEL_TYPE.UNKNOWN:
             raise ValueError(
                 f"Model name is {px_model_str}; not manage yet"
@@ -195,27 +213,17 @@ class Camera:
         )  # list of detector chip IDs
         print("")
         if self.model is MODEL_TYPE.TPX3:
-            print("Energy threshlod:       ", self.energy_threshold0, " keV")
+            print(f"  Energy threshold:     {self.energy_threshold0:.4f} keV")
         if self.model is MODEL_TYPE.MPX3:
             print(
-                "Energy threshlods:      ",
-                "THL0 = ",
-                self.energy_threshold0,
-                " keV ",
-                "THL1 = ",
-                self.energy_threshold1,
-                " keV",
+                f"  Energy thresholds:    THL0 = {self.energy_threshold0:.4f} keV THL1 = {self.energy_threshold1:.2f} keV"
             )
         # gets the threshold of chip 0 in energy
         print(
-            "  Set bias voltage:    ", self.bias_voltage, " V"
+            f"  Set bias voltage:     {self.bias_voltage:.2f} V"
         )  # return device bias voltage (set value)
         print(
-            "  Sensed bias:         ",
-            self.sensed_bias_voltage,
-            " V /",
-            self.sensed_bias_current,
-            " uA",
+            f"  Sensed bias:          {self.sensed_bias_voltage:.2f} V / {self.sensed_bias_current:.2f} uA"
         )
         refsup = True if detector.isSensorRefreshSupported() == 1 else False
         print("  Refresh support:     ", refsup)
@@ -230,8 +238,8 @@ class Camera:
                 self.MPX3_OPERATION_MODES[detector.operationMode()],
             )
 
-        print("  Temperature:         ", self.temperature, " degC")
-        print("")
+        print(f"  Temperature:          {self.temperature:.2f} degC")
+        print("", flush=True)
 
         self.__prepared = False
 
@@ -295,7 +303,7 @@ class Camera:
                 name = frame.subFrames()[1].frameName()
                 ftype = frame.subFrames()[1].frameType()
                 deb.Trace(f"subFrame 1 name {name} and type {ftype}")
-            else:               # MPX3
+            else:  # MPX3
                 r_data = frame.data()
             # reshape data
             data = numpy.array(r_data, dtype=numpy.int16)
@@ -437,7 +445,7 @@ class Camera:
     def energy_threshold0(self):
         if self.model is MODEL_TYPE.TPX3:
             return self.detector.threshold(0, self.PX_THLFLG_ENERGY)
-        else:                   # MPX3
+        else:  # MPX3
             return self.detector.threshold(0, 0, self.PX_THLFLG_ENERGY)
 
     @energy_threshold0.setter
@@ -448,22 +456,22 @@ class Camera:
         if self.model is MODEL_TYPE.TPX3:
             for ch in range(self.nb_chips):
                 self.detector.setThreshold(ch, value, self.PX_THLFLG_ENERGY)
-        else:                   # MPX3
+        else:  # MPX3
             for ch in range(self.nb_chips):
                 self.detector.setThreshold(ch, 0, value, self.PX_THLFLG_ENERGY)
 
     @property
     def energy_threshold1(self):
         if self.model is MODEL_TYPE.TPX3:
-            return None
-        else:                   # MPX3
+            return numpy.nan
+        else:  # MPX3
             # suppose that all the chips have been set with the same thl
             return self.detector.threshold(0, 1, self.PX_THLFLG_ENERGY)
 
     @energy_threshold1.setter
     def energy_threshold1(self, value):
         if self.model is MODEL_TYPE.TPX3:
-            raise ValueError("Advacam model only supports 1 threshold")
+            raise ValueError("TPX3 chip model only supports 1 threshold")
 
         # do not know the valid range !! suppose up to 120 keV
         if value < 0 or value > 120:
@@ -489,7 +497,10 @@ class Camera:
 
     @property
     def temperature(self):
-        return self.detector.parameters().get("Temperature").getDouble()
+        if self.model is MODEL_TYPE.TPX3:
+            return self.detector.temperature()
+        else:
+            return numpy.nan
 
     @property
     def operation_mode(self):

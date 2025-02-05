@@ -82,7 +82,6 @@ class Advacam(PyTango.LatestDeviceImpl):
         self.__OperationMode = {}
         for mode in _AdvacamCamera.OPERATION_MODES:
             self.__OperationMode[_AdvacamCamera.OPERATION_MODES[mode]] = mode
-        print(self.__OperationMode)
 
         if self.energy_threshold:
             _AdvacamCamera.setEnergyThreshold(self.energy_threshold)
@@ -119,7 +118,12 @@ class AdvacamClass(PyTango.DeviceClass):
     device_property_list = {
         # define one and only one of the following 4 properties:
         "config_path": [PyTango.DevString, "Camera config path", []],
-        "energy_threshold": [PyTango.DevDouble, "energy_threshold", []],
+        "device_id": [
+            PyTango.DevString,
+            "Device identifier (serial) mandatory if several cameras are connected",
+            [],
+        ],
+        "energy_threshold": [PyTango.DevDouble, "Energy threshold in keV", []],
     }
 
     cmd_list = {
@@ -150,7 +154,7 @@ class AdvacamClass(PyTango.DeviceClass):
             [PyTango.DevString, PyTango.SCALAR, PyTango.READ_WRITE],
             {
                 "unit": "str",
-                "description": "timepix3 operation mode",
+                "description": "chip operation mode",
             },
         ],
         "sensed_bias_voltage": [
@@ -191,17 +195,17 @@ _AdvacamCamera = None
 _AdvacamInterface = None
 
 
-def get_control(config_path=None, **keys):
+def get_control(config_path=None, device_id="", **keys):
     global _AdvacamCamera
     global _AdvacamInterface
 
     if config_path is None:
         print("Advacam will use factory configuration in '/opt/pixet/factory'")
     else:
-        print("Advacam config path: ", config_path)
+        print(f"Advacam config path: {config_path} (device_id = {device_id})")
 
     if _AdvacamInterface is None:
-        _AdvacamInterface = Interface(config_path)
+        _AdvacamInterface = Interface(config_path, device_id)
         _AdvacamCamera = _AdvacamInterface.camera
     return Core.CtControl(_AdvacamInterface)
 
