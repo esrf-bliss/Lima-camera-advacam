@@ -6,7 +6,7 @@
 {% endif %}
 
 package:
-  name: lima-camera-minipix-tango
+  name: lima-camera-advacam-tango
   version: {{ version }}
 
 source:
@@ -23,7 +23,7 @@ requirements:
     - lima-core
   run:
     - lima-tango-server
-    - lima-camera-minipix
+    - lima-camera-advacam
 
 about:
   home: https://github.com/esrf-bliss/Lima

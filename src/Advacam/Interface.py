@@ -35,11 +35,11 @@ from .acquisition import Camera
 class Interface(Core.HwInterface):
     Core.DEB_CLASS(Core.DebModCamera, "Interface")
 
-    def __init__(self, config_file=None):
+    def __init__(self, config_file=None, device_id=""):
         Core.HwInterface.__init__(self)
 
         self.__buffer = Core.SoftBufferCtrlObj()
-        self.__camera = Camera(config_file, self.__buffer)
+        self.__camera = Camera(config_file, device_id, self.__buffer)
         self.__detInfo = DetInfoCtrlObj(self.__camera)
         self.__syncObj = SyncCtrlObj(self.__camera, self.__detInfo)
         self.__acquisition_start_flag = False

@@ -1,21 +1,22 @@
-.. _lima-tango-minipix:
+.. _lima-tango-advacam:
 
-Basler Tango device
+Advacam Tango device
 =====================
 
-This is the reference documentation of the Minipix Tango device.
+This is the reference documentation of the Advacam Tango device.
 
-you can also find some useful information about the camera models/prerequisite/installation/configuration/compilation in the :ref:`Minipix camera plugin <camera-minipix>` section.
+you can also find some useful information about the camera models/prerequisite/installation/configuration/compilation in the :ref:`Advacam camera plugin <camera-advacam>` section.
 
 Properties
 ----------
 
-======================== =============== ================================= =====================================
+======================== =============== ================================= ======================================
 Property name	         Mandatory	 Default value	                   Description
-======================== =============== ================================= =====================================
+======================== =============== ================================= ======================================
 config_path              Yes             N/A                               the detector XML configuration file
 energy_threshold         No              3.6                               the energy threshold in keV 
-======================== =============== ================================= =====================================
+device_id                No              ""                                the detector identifier, e.g J06-W0105
+======================== =============== ================================= ======================================
 
 
 Attributes

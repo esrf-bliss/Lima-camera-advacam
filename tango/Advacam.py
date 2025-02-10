@@ -1,7 +1,7 @@
 ############################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-# Copyright (C) : 2009-2023
+# Copyright (C) : 2009-2025
 # European Synchrotron Radiation Facility
 # CS40220 38043 Grenoble Cedex 9
 # FRANCE
@@ -24,13 +24,13 @@
 
 # =============================================================================
 #
-# file :        Minipix.py
+# file :        Advacam.py
 #
-# description : Python source for the Minipix and its commands.
+# description : Python source for the Advacam and its commands.
 #                The class is derived from Device. It represents the
 #                CORBA servant object which will be accessed from the
 #                network. All commands which can be executed on the
-#                Pilatus are implemented in this file.
+#                Advacam are implemented in this file.
 #
 # project :     TANGO Device Server
 #
@@ -44,13 +44,13 @@
 #
 import PyTango
 from Lima import Core
-from Minipix.Interface import Interface
-from Minipix.acquisition import Camera
+from Advacam.Interface import Interface
+from Advacam.acquisition import Camera
 
 from Lima.Server import AttrHelper
 
 
-class Minipix(PyTango.LatestDeviceImpl):
+class Advacam(PyTango.LatestDeviceImpl):
     Core.DEB_CLASS(Core.DebModApplication, "LimaCCDs")
 
     # ------------------------------------------------------------------
@@ -69,7 +69,7 @@ class Minipix(PyTango.LatestDeviceImpl):
     #    Device destructor
     # ------------------------------------------------------------------
     def delete_device(self):
-        _MinipixCamera.quit()
+        _AdvacamCamera.quit()
 
     # ------------------------------------------------------------------
     #    Device initialization
@@ -80,12 +80,11 @@ class Minipix(PyTango.LatestDeviceImpl):
         self.get_device_properties(self.get_device_class())
 
         self.__OperationMode = {}
-        for mode in _MinipixCamera.OPERATION_MODES:
-            self.__OperationMode[_MinipixCamera.OPERATION_MODES[mode]] = mode
-        print(self.__OperationMode)
+        for mode in _AdvacamCamera.OPERATION_MODES:
+            self.__OperationMode[_AdvacamCamera.OPERATION_MODES[mode]] = mode
 
         if self.energy_threshold:
-            _MinipixCamera.setEnergyThreshold(self.energy_threshold)
+            _AdvacamCamera.setEnergyThreshold(self.energy_threshold)
 
     # ------------------------------------------------------------------
     #    getAttrStringValueList command:
@@ -100,26 +99,31 @@ class Minipix(PyTango.LatestDeviceImpl):
 
     # ==================================================================
     #
-    #    Minipix read/write attribute methods
+    #    Advacam read/write attribute methods
     #
     # ==================================================================
     def __getattr__(self, name):
         # use AttrHelper
-        return AttrHelper.get_attr_4u(self, name, _MinipixCamera)
+        return AttrHelper.get_attr_4u(self, name, _AdvacamCamera)
 
 
 # ==================================================================
 #
-#    MinipixClass class definition
+#    AdvacamClass class definition
 #
 # ==================================================================
-class MinipixClass(PyTango.DeviceClass):
+class AdvacamClass(PyTango.DeviceClass):
     class_property_list = {}
 
     device_property_list = {
         # define one and only one of the following 4 properties:
         "config_path": [PyTango.DevString, "Camera config path", []],
-        "energy_threshold": [PyTango.DevDouble, "energy_threshold", []],
+        "device_id": [
+            PyTango.DevString,
+            "Device identifier (serial) mandatory if several cameras are connected",
+            [],
+        ],
+        "energy_threshold": [PyTango.DevDouble, "Energy threshold in keV", []],
     }
 
     cmd_list = {
@@ -150,7 +154,7 @@ class MinipixClass(PyTango.DeviceClass):
             [PyTango.DevString, PyTango.SCALAR, PyTango.READ_WRITE],
             {
                 "unit": "str",
-                "description": "timepix3 operation mode",
+                "description": "chip operation mode",
             },
         ],
         "sensed_bias_voltage": [
@@ -187,24 +191,24 @@ class MinipixClass(PyTango.DeviceClass):
 # ----------------------------------------------------------------------------
 # Plugins
 # ----------------------------------------------------------------------------
-_MinipixCamera = None
-_MinipixInterface = None
+_AdvacamCamera = None
+_AdvacamInterface = None
 
 
-def get_control(config_path=None, **keys):
-    global _MinipixCamera
-    global _MinipixInterface
+def get_control(config_path=None, device_id="", **keys):
+    global _AdvacamCamera
+    global _AdvacamInterface
 
     if config_path is None:
-        print("Minipix will use factory configuration in '/opt/pixet/factory'")
+        print("Advacam will use factory configuration in '/opt/pixet/factory'")
     else:
-        print("Minipix config path: ", config_path)
+        print(f"Advacam config path: {config_path} (device_id = {device_id})")
 
-    if _MinipixInterface is None:
-        _MinipixInterface = Interface(config_path)
-        _MinipixCamera = _MinipixInterface.camera
-    return Core.CtControl(_MinipixInterface)
+    if _AdvacamInterface is None:
+        _AdvacamInterface = Interface(config_path, device_id)
+        _AdvacamCamera = _AdvacamInterface.camera
+    return Core.CtControl(_AdvacamInterface)
 
 
 def get_tango_specific_class_n_device():
-    return MinipixClass, Minipix
+    return AdvacamClass, Advacam

@@ -2,7 +2,7 @@
 ###########################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-#  Copyright (C) : 2009-2023
+#  Copyright (C) : 2009-2025
 #  European Synchrotron Radiation Facility
 #  CS40220 38043 Grenoble Cedex 9
 #  FRANCE
@@ -24,11 +24,11 @@
 ############################################################################
 from setuptools import setup
 
-setup(name='Minipix',
-    description='Python server for Lima camera Minipix',
-    url='https://gitlab.esrf.fr/limagroup/Lima-camera-minipix',
-    packages=['Minipix'],
-    package_dir={'Minipix': 'src/Minipix'},
+setup(name='Advacam',
+    description='Python server for Lima camera Advacam',
+    url='https://gitlab.esrf.fr/limagroup/Lima-camera-advacam',
+    packages=['Advacam'],
+    package_dir={'Advacam': 'src/Advacam'},
 
     # For compatibility with older pip
     use_scm_version=True,
