@@ -472,12 +472,15 @@ class Camera:
     def energy_threshold1(self, value):
         if self.model is MODEL_TYPE.TPX3:
             raise ValueError("TPX3 chip model only supports 1 threshold")
-
         # do not know the valid range !! suppose up to 120 keV
         if value < 0 or value > 120:
             raise ValueError("Invalid energy threshold, range = [0,120] keV")
-        for ch in self.nb_chips:
-            self.detector.setThreshold(ch, 1, value, self.PX_THLFLAG_ENERGY)
+        if self.model is MODEL_TYPE.TPX3:
+            for ch in range(self.nb_chips):
+                self.detector.setThreshold(ch, value, self.PX_THLFLG_ENERGY)
+        else:  # MPX3
+            for ch in range(self.nb_chips):
+                self.detector.setThreshold(ch, 1, value, self.PX_THLFLG_ENERGY)
 
     @property
     def bias_voltage(self):
@@ -529,10 +532,10 @@ class Camera:
         return self.energy_threshold0
 
     def setEnergyThreshold1(self, value):
-        self.energy_threshold0 = value
+        self.energy_threshold1 = value
 
     def getEnergyThreshold1(self):
-        return self.energy_threshold0
+        return self.energy_threshold1
 
     def setBiasVoltage(self, value):
         self.bias_voltage = value
