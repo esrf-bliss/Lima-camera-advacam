@@ -81,6 +81,7 @@ class Camera:
     ENERGY_THRESHOLD = 3.6
 
     # More flags
+    pypixet.start()
     px = pypixet.pixet
 
     PX_THLFLG_ENERGY = px.PX_THLFLG_ENERGY
@@ -155,7 +156,7 @@ class Camera:
                 config_file = xml_file_path[0]
             else:
                 raise RuntimeError("You should define a configuration file")
-        pypixet.start()
+
         # below example code copied from pixetacq_server.py provided by ID20
         # (https://confluence.esrf.fr/pages/viewpage.action?spaceKey=ID20WK&title=MiniPIX)
 
