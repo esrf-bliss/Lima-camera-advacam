@@ -24,13 +24,13 @@
 ############################################################################
 from setuptools import setup
 
-setup(name='Advacam',
-    description='Python server for Lima camera Advacam',
-    url='https://gitlab.esrf.fr/limagroup/Lima-camera-advacam',
-    packages=['Advacam'],
-    package_dir={'Advacam': 'src/Advacam'},
-
+setup(
+    name="Advacam",
+    description="Python server for Lima camera Advacam",
+    url="https://gitlab.esrf.fr/limagroup/Lima-camera-advacam",
+    packages=["Advacam"],
+    package_dir={"Advacam": "src/Advacam"},
     # For compatibility with older pip
     use_scm_version=True,
-    setup_requires=["setuptools_scm"],      
+    setup_requires=["setuptools_scm"],
 )

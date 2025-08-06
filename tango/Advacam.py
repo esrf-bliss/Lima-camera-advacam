@@ -142,12 +142,20 @@ class AdvacamClass(PyTango.DeviceClass):
                 "description": "Bias high voltage in Volt",
             },
         ],
-        "energy_threshold": [
+        "energy_threshold0": [
             [PyTango.DevDouble, PyTango.SCALAR, PyTango.READ_WRITE],
             {
                 "unit": "keV",
                 "format": "%1f",
-                "description": "energy threshold in keV",
+                "description": "energy threshold 0 in keV",
+            },
+        ],
+        "energy_threshold1": [
+            [PyTango.DevDouble, PyTango.SCALAR, PyTango.READ_WRITE],
+            {
+                "unit": "keV",
+                "format": "%1f",
+                "description": "energy threshold 1 in keV",
             },
         ],
         "operation_mode": [
