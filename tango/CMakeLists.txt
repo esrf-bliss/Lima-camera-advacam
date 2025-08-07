@@ -24,7 +24,7 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-project(advacam NONE)
+project(advacam_tango NONE)
 
 # use lima toolbox function,
 # if cmake is ran out of camera mother project, check python environment  
