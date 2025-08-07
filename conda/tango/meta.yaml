@@ -22,8 +22,9 @@ requirements:
     - ninja
     - lima-core
   run:
+    - python
     - lima-tango-server
-    - lima-camera-advacam
+    - lima-camera-advacam {{ version }}
 
 about:
   home: https://github.com/esrf-bliss/Lima
