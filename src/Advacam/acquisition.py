@@ -68,7 +68,7 @@ class acqThread(threading.Thread):
 
 
 # Enum
-MODEL_TYPE = enum.Enum("MODEL_TYPE", ["UNKNOWN", "MPX3", "TPX3"])
+MODEL_TYPE = enum.Enum("MODEL_TYPE", ["UNKNOWN", "MPX3", "TPX3", "TPX_MPX"])
 
 
 class Camera:
@@ -120,6 +120,12 @@ class Camera:
     MPX3_COUNTER_DEPTH_MODES = {
         2: 12,
         3: 24,
+    }
+
+    PX_TPX_MPX = px.PX_TPXMODE_MEDIPIX
+
+    TPX_MPX_OPERATION_MODES = {
+        PX_TPX_MPX: "TPX_MPX",
     }
 
     INTERNAL_TRIG = px.PX_ACQMODE_NORMAL
@@ -194,13 +200,20 @@ class Camera:
         self.nb_chips = self.detector.chipCount()
 
         self.detector.loadConfigFromFile(config_file)
-
-        if self.model is MODEL_TYPE.TPX3:
-            self.detector.setOperationMode(self.PX_TPX3_OPM_EVENT_ITOT)
-            self.OPERATION_MODES = self.TPX3_OPERATION_MODES
-        elif self.model is MODEL_TYPE.MPX3:
-            self.detector.setOperationMode(self.PX_MPX3_OPM_SPM_1CH)
-            self.OPERATION_MODES = self.MPX3_OPERATION_MODES
+        try:
+            if self.model is MODEL_TYPE.TPX3:
+                self.detector.setOperationMode(self.PX_TPX3_OPM_EVENT_ITOT)
+            #    self.detector.pixCfg().setModeAll(pypixet.pixet.PX_TPXMODE_MEDIPIX)
+                self.OPERATION_MODES = self.TPX3_OPERATION_MODES
+             #   self.OPERATION_MODES = pypixet.pixet.PX_TPXMODE_MEDIPIX
+            elif self.model is MODEL_TYPE.MPX3:
+                self.detector.setOperationMode(self.PX_MPX3_OPM_SPM_1CH)
+                self.OPERATION_MODES = self.MPX3_OPERATION_MODES
+        except AttributeError as e:
+            print(f"error : {e}, use TPX_MPX mode")
+            self.detector.pixCfg().setModeAll(self.PX_TPX_MPX)
+            self.OPERATION_MODES = self.TPX_MPX_OPERATION_MODES
+            self.model = MODEL_TYPE.TPX_MPX
 
         detector = self.detector
         print("DETECTOR INFO")
@@ -233,10 +246,15 @@ class Camera:
                 "  Mode:                ",
                 self.TPX3_OPERATION_MODES[detector.operationMode()],
             )
+        elif self.model is MODEL_TYPE.MPX3:
+            print(
+                "  Mode:               ",
+                self.MPX3_OPERATION_MODES[detector.operationMode()],
+            )
         else:
             print(
-                "  Mode:                ",
-                self.MPX3_OPERATION_MODES[detector.operationMode()],
+                "  Mode:               ",
+                self.TPX_MPX_OPERATION_MODES[self.PX_TPX_MPX],
             )
 
         print(f"  Temperature:          {self.temperature:.2f} degC")
@@ -418,6 +436,8 @@ class Camera:
             return 16
         elif self.model is MODEL_TYPE.MPX3:
             return self.MPX3_COUNTER_DEPTH_MODES[self.detector.counterDepth()]
+        elif self.model is MODEL_TYPE.TPX_MPX:
+            return 16
 
     @property
     def buffer_ctrl(self):
@@ -446,8 +466,10 @@ class Camera:
     def energy_threshold0(self):
         if self.model is MODEL_TYPE.TPX3:
             return self.detector.threshold(0, self.PX_THLFLG_ENERGY)
-        else:  # MPX3
+        elif self.model is MODEL_TYPE.MPX3:  # MPX3
             return self.detector.threshold(0, 0, self.PX_THLFLG_ENERGY)
+        else:
+            return self.detector.threshold(0, self.PX_THLFLG_ENERGY)
 
     @energy_threshold0.setter
     def energy_threshold0(self, value):
@@ -457,22 +479,31 @@ class Camera:
         if self.model is MODEL_TYPE.TPX3:
             for ch in range(self.nb_chips):
                 self.detector.setThreshold(ch, value, self.PX_THLFLG_ENERGY)
-        else:  # MPX3
+        elif self.model is MODEL_TYPE.MPX3:  # MPX3
             for ch in range(self.nb_chips):
                 self.detector.setThreshold(ch, 0, value, self.PX_THLFLG_ENERGY)
+        else:
+            for ch in range(self.nb_chips):
+                self.detector.setThreshold(ch, value, self.PX_THLFLG_ENERGY)
 
     @property
     def energy_threshold1(self):
         if self.model is MODEL_TYPE.TPX3:
             return numpy.nan
-        else:  # MPX3
+        elif self.model is MODEL_TYPE.MPX3:  # MPX3
             # suppose that all the chips have been set with the same thl
             return self.detector.threshold(0, 1, self.PX_THLFLG_ENERGY)
+        else: # TPX_MPX
+            return self.detector.threshold(0, self.PX_THLFLG_ENERGY)
 
     @energy_threshold1.setter
     def energy_threshold1(self, value):
         if self.model is MODEL_TYPE.TPX3:
             raise ValueError("TPX3 chip model only supports 1 threshold")
+
+        if self.model is MODEL_TYPE.TPX_MPX:
+            raise ValueError("TPX_MPX chip model only supports 1 threshold")
+
         # do not know the valid range !! suppose up to 120 keV
         if value < 0 or value > 120:
             raise ValueError("Invalid energy threshold, range = [0,120] keV")
@@ -508,7 +539,10 @@ class Camera:
 
     @property
     def operation_mode(self):
-        return self.OPERATION_MODES[self.detector.operationMode()]
+        if self.model is MODEL_TYPE.TPX_MPX:
+            return self.OPERATION_MODES[self.PX_TPX_MPX]
+        else:
+            return self.OPERATION_MODES[self.detector.operationMode()]
 
     @operation_mode.setter
     def operation_mode(self, value):
@@ -554,7 +588,11 @@ class Camera:
         return self.temperature
 
     def getOperationMode(self):
-        return self.detector.operationMode()
+        if self.model is MODEL_TYPE.TPX_MPX:
+            return int(self.PX_TPX_MPX)
+
+        else:
+            return self.detector.operationMode()
 
     def setOperationMode(self, value):
         self.operation_mode = value
