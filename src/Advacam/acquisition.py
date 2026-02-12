@@ -92,10 +92,10 @@ class Camera:
     PX_TPX3_OPM_TOT_NOTOA = px.PX_TPX3_OPM_TOT_NOTOA
 
     TPX3_OPERATION_MODES = {
-        PX_TPX3_OPM_TOATOT: "ToA+ToT",
-        PX_TPX3_OPM_TOA: "ToA",
-        PX_TPX3_OPM_EVENT_ITOT: "Event+iToT",
-        PX_TPX3_OPM_TOT_NOTOA: "ToT",
+        PX_TPX3_OPM_TOATOT: "TOA+TOT",
+        PX_TPX3_OPM_TOA: "TOA",
+        PX_TPX3_OPM_EVENT_ITOT: "EVENT+ITOT",
+        PX_TPX3_OPM_TOT_NOTOA: "TOT",
     }
     PX_MPX3_OPM_SPM_1CH = px.PX_MPX3_OPM_SPM_1CH
     PX_MPX3_OPM_SPM_2CH = px.PX_MPX3_OPM_SPM_2CH
@@ -546,11 +546,11 @@ class Camera:
 
     @operation_mode.setter
     def operation_mode(self, value):
-        if value not in self.OPERATION_MODES.values():
+        if value not in self.OPERATION_MODES.keys():
             raise ValueError("Invalid operation mode")
-        d = self.OPERATION_MODES
-        mode = list(d.keys())[list(d.values()).index(value)]
-        self.detector.setOperationMode(mode)
+#        d = self.OPERATION_MODES
+#        mode = list(d.keys())[list(d.values()).index(value)]
+        self.detector.setOperationMode(value)
 
     # for pytango automatic wrapping
 
