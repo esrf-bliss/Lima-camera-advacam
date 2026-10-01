@@ -31,25 +31,25 @@ import enum
 import glob
 
 try:
-    from Lima import Core
+    from lima import core
 except:
     pass
 
 
 class acqThread(threading.Thread):
-    Core.DEB_CLASS(Core.DebModCamera, "Advacam.Camera.acqThread")
+    core.DEB_CLASS(core.DebModule.DebModCamera, "Advacam.Camera.acqThread")
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def __init__(self, advacam):
         threading.Thread.__init__(self)
         self.advacam = advacam
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def run(self):
         deb.Trace("Starting acqThread")
         if self.advacam.buffer_ctrl:
             buffer_mgr = self.advacam.buffer_ctrl.getBuffer()
-            buffer_mgr.setStartTimestamp(Core.Timestamp.now())
+            buffer_mgr.setStartTimestamp(core.Timestamp.now())
 
         rc = self.advacam.detector.doAdvancedAcquisition(
             self.advacam.acq_nb_frames,
@@ -72,7 +72,7 @@ MODEL_TYPE = enum.Enum("MODEL_TYPE", ["UNKNOWN", "MPX3", "TPX3", "TPX_MPX"])
 
 
 class Camera:
-    Core.DEB_CLASS(Core.DebModCamera, "Advacam.Camera")
+    core.DEB_CLASS(core.DebModule.DebModCamera, "Advacam.Camera")
     # Detector states
     ERROR, READY, RUNNING = range(3)
 
@@ -153,7 +153,7 @@ class Camera:
         "advapix": MODEL_TYPE.TPX3,
     }
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def __init__(self, config_file=None, device_id="", buffer_ctrl=None):
         if config_file is None:  # take the factory configuration
             xml_file_path = glob.glob("/opt/pixet/factory/*.xml")
@@ -297,11 +297,11 @@ class Camera:
     def __del__(self):
         pypixet.exit()
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def quit(self):
         pypixet.exit()
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def callback(self, value):
         deb.Trace("Callback " + str(value))
         frame = self.detector.lastAcqFrameRefInc()
@@ -330,9 +330,9 @@ class Camera:
 
             self.__buffer_mgr.copy_data(frame_id, data)
 
-            frame_info = Core.HwFrameInfoType()
+            frame_info = core.HwFrameInfoType()
             frame_info.acq_frame_nb = frame_id
-            frame_info.frame_timestamp = Core.Timestamp.now()
+            frame_info.frame_timestamp = core.Timestamp.now()
 
             # raise the new frame !
             self.__buffer_mgr.newFrameReady(frame_info)
@@ -345,7 +345,7 @@ class Camera:
         if self.trigger_mode == self.INTERNAL_TRIG_MULTI:
             self.__status = self.READY
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def prepareAcq(self):
         if not self.__prepared:
             self.detector.registerEvent(
@@ -360,12 +360,12 @@ class Camera:
             self.__prepared = True
             self.__acquired_frames = 0
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def getStatus(self):
         # if self.detector.isReadyForSoftwareTrigger(0):
         return self.__status
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def startAcq(self):
         if self.__acquired_frames == 0:
             self.acqthread = acqThread(self)
@@ -377,11 +377,11 @@ class Camera:
         rc = self.detector.doSoftwareTrigger(0)
         deb.Trace(f"startAcq(): Trigger {self.acquiredFrames+1}")
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def stopAcq(self):
         self._stopAcq(abort=True)
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def _stopAcq(self, abort=False):
         self.detector.unregisterEvent(
             pypixet.pixet.PX_EVENT_ACQ_FINISHED, self.callback, self.callback

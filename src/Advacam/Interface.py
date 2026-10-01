@@ -24,7 +24,7 @@
 
 import weakref
 
-from Lima import Core
+from lima import core
 
 from .DetInfoCtrlObj import DetInfoCtrlObj
 from .SyncCtrlObj import SyncCtrlObj
@@ -32,13 +32,23 @@ from .SyncCtrlObj import SyncCtrlObj
 from .acquisition import Camera
 
 
-class Interface(Core.HwInterface):
-    Core.DEB_CLASS(Core.DebModCamera, "Interface")
+def _combine_det_status(*members):
+    # The new pybind11-bound DetStatus/AcqStatus enums don't support the
+    # bitwise-or the old sip-bound ones did (det_mask is a bitmask of
+    # flags) - combine by value and rebuild a DetStatus instance.
+    value = 0
+    for m in members:
+        value |= m.value
+    return core.DetStatus(value)
+
+
+class Interface(core.HwInterface):
+    core.DEB_CLASS(core.DebModule.DebModCamera, "Interface")
 
     def __init__(self, config_file=None, device_id=""):
-        Core.HwInterface.__init__(self)
+        core.HwInterface.__init__(self)
 
-        self.__buffer = Core.SoftBufferCtrlObj()
+        self.__buffer = core.SoftBufferCtrlObj()
         self.__camera = Camera(config_file, device_id, self.__buffer)
         self.__detInfo = DetInfoCtrlObj(self.__camera)
         self.__syncObj = SyncCtrlObj(self.__camera, self.__detInfo)
@@ -50,64 +60,65 @@ class Interface(Core.HwInterface):
     def quit(self):
         self.__camera.quit()
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def getCapList(self):
-        return [Core.HwCap(x) for x in [self.__detInfo, self.__syncObj, self.__buffer]]
+        return [core.HwCap(x) for x in [self.__detInfo, self.__syncObj, self.__buffer]]
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def reset(self, reset_level):
         if reset_level == self.HardReset:
             self.__camera.hard_reset()
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def prepareAcq(self):
         self.__camera.prepareAcq()
         self.__syncObj.prepareAcq()
         self.__image_number = 0
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def startAcq(self):
         self.__acquisition_start_flag = True
         self.__camera.startAcq()
         self.__image_number += 1
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def stopAcq(self):
         self.__camera.stopAcq()
         self.__acquisition_start_flag = False
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def getStatus(self):
         camserverStatus = self.__camera.getStatus()
-        status = Core.HwInterface.StatusType()
+        status = core.HwInterface.StatusType()
 
         if camserverStatus == self.__camera.ERROR:
-            status.det = Core.DetFault
-            status.acq = Core.AcqFault
+            status.det = core.DetStatus.DetFault
+            status.acq = core.AcqStatus.AcqFault
             deb.Error("Detector is in Fault stat")
         else:
             if camserverStatus == self.__camera.RUNNING:
-                status.det = Core.DetExposure
-                status.acq = Core.AcqRunning
+                status.det = core.DetStatus.DetExposure
+                status.acq = core.AcqStatus.AcqRunning
             else:
-                status.det = Core.DetIdle
+                status.det = core.DetStatus.DetIdle
                 lastAcquiredFrame = self.__camera.acquiredFrames - 1
                 requestNbFrame = self.__syncObj.getNbFrames()
                 if not self.__acquisition_start_flag or (
                     lastAcquiredFrame >= 0 and lastAcquiredFrame == (requestNbFrame - 1)
                 ):
-                    status.acq = Core.AcqReady
+                    status.acq = core.AcqStatus.AcqReady
                 else:
-                    status.acq = Core.AcqRunning
+                    status.acq = core.AcqStatus.AcqRunning
 
-        status.det_mask = Core.DetExposure | Core.DetFault
+        status.det_mask = _combine_det_status(core.DetStatus.DetExposure,
+                                              core.DetStatus.DetFault)
         return status
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def getNbAcquiredFrames(self):
         return self.__camera.acquiredFrames
 
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def getNbHwAcquiredFrames(self):
         return self.getNbAcquiredFrames()
 
@@ -118,7 +129,7 @@ class Interface(Core.HwInterface):
 
 def main():
     hwint = Interface()
-    ct = Core.CtControl(hwint)
+    ct = core.CtControl(hwint)
 
     return ct
 
