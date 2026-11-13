@@ -43,15 +43,15 @@
 # =============================================================================
 #
 import PyTango
-from Lima import Core
+from lima import core
 from Advacam.Interface import Interface
 from Advacam.acquisition import Camera
 
-from Lima.Server import AttrHelper
+from lima.server import AttrHelper
 
 
 class Advacam(PyTango.LatestDeviceImpl):
-    Core.DEB_CLASS(Core.DebModApplication, "LimaCCDs")
+    core.DEB_CLASS(core.DebModule.DebModApplication, "LimaCCDs")
 
     # ------------------------------------------------------------------
     #    Device constructor
@@ -74,7 +74,7 @@ class Advacam(PyTango.LatestDeviceImpl):
     # ------------------------------------------------------------------
     #    Device initialization
     # ------------------------------------------------------------------
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def init_device(self):
         self.set_state(PyTango.DevState.ON)
         self.get_device_properties(self.get_device_class())
@@ -92,7 +92,7 @@ class Advacam(PyTango.LatestDeviceImpl):
     #    Description: return a list of authorized values if any
     #    argout: DevVarStringArray
     # ------------------------------------------------------------------
-    @Core.DEB_MEMBER_FUNCT
+    @core.DEB_MEMBER_FUNCT
     def getAttrStringValueList(self, attr_name):
         # use AttrHelper
         return AttrHelper.get_attr_string_value_list(self, attr_name)
@@ -215,7 +215,7 @@ def get_control(config_path=None, device_id="", **keys):
     if _AdvacamInterface is None:
         _AdvacamInterface = Interface(config_path, device_id)
         _AdvacamCamera = _AdvacamInterface.camera
-    return Core.CtControl(_AdvacamInterface)
+    return core.CtControl(_AdvacamInterface)
 
 
 def get_tango_specific_class_n_device():

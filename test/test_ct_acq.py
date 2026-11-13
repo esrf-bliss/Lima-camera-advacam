@@ -1,4 +1,4 @@
-from Lima import Core
+from lima import core
 import Interface
 
 
@@ -9,7 +9,7 @@ import Interface
 def main():
 
     hwint = Interface.Interface()
-    ct = Core.CtControl(hwint)
+    ct = core.CtControl(hwint)
     image = ct.image()
     acq = ct.acquisition()
     saving = ct.saving()
